@@ -7,6 +7,8 @@ const path = require('path')
 const rmdirr = require('@fibjs/rmdirr')
 const mkdirp = require('@fibjs/mkdirp')
 
+const strip = require('strip-color')
+
 const TSF = require('../../')
 
 const { SOURCE_BASE } = require('./_helpers')
@@ -21,7 +23,7 @@ const fsFileTestInterface = {
     inputFilepath: path.resolve(SOURCE_BASE, './interface.ts')
 }
 
-describe('from file', () => {
+odescribe('from file', () => {
     let sbox
     function resetSbox () {
         sbox = new vm.SandBox({})
@@ -129,6 +131,47 @@ describe('from file', () => {
         assertSandboxForBasicTs(
             sbox.require(path.resolve(fsFileTestBasic.outputDirname, './basic.js'), __dirname)
         )
+    })
+
+    odescribe('@diagnostics', () => {
+        ;[
+            'diagnostics/wrong_syntax1.1.ts',
+            'diagnostics/wrong_syntax1.2.ts',
+            'diagnostics/wrong_syntax1.3.ts',
+            'diagnostics/wrong_syntax1.4.ts',
+
+            // 'diagnostics/type_error.1.ts',
+        ].forEach((filename) => {
+            it(`${filename}`, () => {
+                const source = path.resolve(__dirname, `./src/${filename}`)
+                const diagnostics = []
+                // collect diagnostics
+                TSF.compilers.compileFrom(source, { diagnostics })
+
+                assert.isTrue(!!diagnostics.length)
+                
+                assert.isTrue(
+                    diagnostics.every(diagnostic => {
+                        const output = TSF.tsApis.formatDiagnostic(diagnostic);
+                        console.log('output', output)
+                        // console.log(
+                        //     'TSF.tsApis.simplifyDiagnostic(diagnostic)',
+                        //     TSF.tsApis.simplifyDiagnostic(diagnostic)
+                        // );
+
+                        return (
+                            strip(output).includes(
+                                `test/specs/src/${filename}`
+                            )
+                        ) && (
+                            strip(output).includes(
+                                `TS${diagnostic.code}: ${diagnostic.messageText}`
+                            )
+                        )
+                    })
+                )
+            })
+        });
     })
 })
 

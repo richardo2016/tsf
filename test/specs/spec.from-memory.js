@@ -26,7 +26,7 @@ export function hello () {
     sboxName: 'from-memory'
 }
 
-describe('from-memory', () => {
+odescribe('from-memory', () => {
     let sbox
     function resetSbox () {
         sbox = new vm.SandBox({})

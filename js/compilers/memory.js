@@ -1,14 +1,32 @@
 const vm = require('vm')
 const uuid = require('uuid')
-const typescript = require('typescript')
+const ts = require('typescript')
 
 const TSFError = require('../error')
 
 const CORE = require('../core')
 
+const { diagnosticsReporter } = require('../typescript-apis/runtime');
+
 const SCRIPT_NAME = '__temp:'
 const GLOBAL_PROXY_SANDBOX = new vm.SandBox({}, name => require(name))
 
+// @copy from typescript.d.ts
+/**
+    interface TranspileOptions {
+        compilerOptions?: CompilerOptions;
+        fileName?: string;
+        reportDiagnostics?: boolean;
+        moduleName?: string;
+        renamedDependencies?: MapLike<string>;
+        transformers?: CustomTransformers;
+    }
+    interface TranspileOutput {
+        outputText: string;
+        diagnostics?: Diagnostic[];
+        sourceMapText?: string;
+    }
+ */
 /**
     // This is a shortcut function for transpileModule - it accepts transpileOptions as parameters and returns only outputText part of the result.
     
@@ -19,37 +37,61 @@ const GLOBAL_PROXY_SANDBOX = new vm.SandBox({}, name => require(name))
         return output.outputText;
     }
  */
-// customize my own shortcuts of `typescript.transpileModule`
-const transpileTypescript = exports.transpileTypescript = function (transpileArgs, options) {
-    const [tsRaw = '', compilerOptions, filename, diagnostics, moduleName] = transpileArgs || []
-
+// customize my own shortcuts of `ts.transpileModule`
+const transpileTypescript = exports.transpileTypescript = function (
+    tsRaw = '',
+    compilerOptions,
+    options
+) {
     const {
         toModule = false,
-        onTranspiledModule = CORE.defaultOnTranspiledModuleResult
+        onTranspiledModule = defaultOnTranspiledModuleResult,
+        /* transpile about configuration :start */
+        fileName,
+        diagnostics,
+        moduleName,
+        /* transpile about configuration :end */
     } = options || {}
 
     if (typeof onTranspiledModule !== 'function')
         throw new TSFError(`'onTranspiledModule' must be function!`, TSFError.LITERALS.TYPE_ASSERT)
 
+    if (diagnostics && !Array.isArray(diagnostics))
+        throw new TSFError(`'diagnostics' must be diagnostics Array!`, TSFError.LITERALS.TYPE_ASSERT)
+
     if (!toModule) {
         const result = CORE.transpileModule(tsRaw, {
             compilerOptions,
-            filename,
-            diagnostics,
-            moduleName
+            fileName,
+            reportDiagnostics: !!diagnostics,
+            moduleName,
+            renamedDependencies: {},
+            transformers: {}
         })
 
-        typescript.addRange(diagnostics, result.diagnostics)
+        ts.addRange(diagnostics, result.diagnostics)
 
         onTranspiledModule(result, options)
 
         return result.outputText
     }
 
-    const jsScript = transpileTypescript(transpileArgs, { ...options, toModule: false })
+    const jsScript = transpileTypescript(tsRaw, compilerOptions, { ...options, toModule: false })
 
     const sname = `${SCRIPT_NAME}//${uuid.snowflake().hex()}`
     GLOBAL_PROXY_SANDBOX.addScript(sname, jsScript)
 
     return GLOBAL_PROXY_SANDBOX.require(sname, __dirname)
+}
+
+const defaultOnTranspiledModuleResult = function defaultOnTranspiledModuleResult (result, options) {
+    if (!process.env.DEBUG) return 
+    
+    const { diagnostics } = options || {}
+
+    if (!!diagnostics) {
+        result.diagnostics.map(diag => {
+            console.log(diagnosticsReporter(diag))
+        })
+    }
 }

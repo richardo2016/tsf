@@ -7,7 +7,7 @@ const mkdirp = require('@fibjs/mkdirp')
 
 const TSFError = require('./error');
 
-const CORE = require('./core')
+const CORE = require('./core');
 
 function time () {
     return new Date()

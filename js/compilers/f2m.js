@@ -12,5 +12,9 @@ exports.compileFile = function (filepath = '', compilerOptions, options) {
     if (!tsRaw)
         throw new TSFError(`${UTILs.getLogPrefix('api', 'compileFile')}filecontent is empty in ${filepath}`, TSFError.LITERALS.FILE_CONTENT_EMPTY)
 
-    return transpileTypescript([tsRaw, compilerOptions], options)
+    return transpileTypescript(tsRaw, compilerOptions, {
+        ...options,
+        fileName: filepath,
+        moduleName: filepath
+    })
 }

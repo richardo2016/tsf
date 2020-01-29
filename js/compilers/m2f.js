@@ -32,5 +32,5 @@ exports.memoryToFile = function (tsRaw = '', targetpath = '', tsCompilerOptions,
         }
     }
 
-    fs.writeTextFile(targetpath, transpileTypescript([tsRaw, tsCompilerOptions]))
+    fs.writeTextFile(targetpath, transpileTypescript(tsRaw, tsCompilerOptions, options))
 }

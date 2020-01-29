@@ -1,10 +1,11 @@
 'use strict';
 
-const path = require('path')
 const typescript = require('typescript')
 const { extend } = require('util')
 
 const TSFError = require('./error')
+
+require('./typescript-apis/runtime');
 
 // CompilerOptions
 const DFLT_COMPILEROPTIONS = {
@@ -27,22 +28,6 @@ const _filterCompilerOptions = exports._filterCompilerOptions = function (tsComp
     }
 }
 
-// @copy from typescript.d.ts
-/**
-    interface TranspileOptions {
-        compilerOptions?: CompilerOptions;
-        fileName?: string;
-        reportDiagnostics?: boolean;
-        moduleName?: string;
-        renamedDependencies?: MapLike<string>;
-        transformers?: CustomTransformers;
-    }
-    interface TranspileOutput {
-        outputText: string;
-        diagnostics?: Diagnostic[];
-        sourceMapText?: string;
-    }
- */
 exports.transpileModule = function (input, transpileOptions, locals) {
     if (!input)
         throw new TSFError('typescript inputed empty', TSFError.LITERALS.TYPESCRIPT_SOURCE_EMPTY)
@@ -53,11 +38,4 @@ exports.transpileModule = function (input, transpileOptions, locals) {
     transpileOptions.compilerOptions = _getOptions(transpileOptions.compilerOptions, locals)
 
     return typescript.transpileModule(input, transpileOptions)
-}
-
-exports.defaultOnTranspiledModuleResult = function (result, options) {
-    const { reportError = true } = options || {}
-
-    // if (reportError)
-    //     console.info('result.diagnostics', result.diagnostics)
 }
