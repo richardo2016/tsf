@@ -23,7 +23,7 @@ const fsFileTestInterface = {
     inputFilepath: path.resolve(SOURCE_BASE, './interface.ts')
 }
 
-odescribe('from file', () => {
+describe('from file', () => {
     let sbox
     function resetSbox () {
         sbox = new vm.SandBox({})
@@ -133,7 +133,7 @@ odescribe('from file', () => {
         )
     })
 
-    odescribe('@diagnostics', () => {
+    describe('@diagnostics', () => {
         ;[
             'diagnostics/wrong_syntax1.1.ts',
             'diagnostics/wrong_syntax1.2.ts',
