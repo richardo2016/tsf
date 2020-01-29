@@ -140,7 +140,8 @@ odescribe('from file', () => {
             'diagnostics/wrong_syntax1.3.ts',
             'diagnostics/wrong_syntax1.4.ts',
 
-            // 'diagnostics/type_error.1.ts',
+            'diagnostics/type_error.1.ts',
+            'diagnostics/type_error.2.ts',
         ].forEach((filename) => {
             it(`${filename}`, () => {
                 const source = path.resolve(__dirname, `./src/${filename}`)
@@ -153,11 +154,7 @@ odescribe('from file', () => {
                 assert.isTrue(
                     diagnostics.every(diagnostic => {
                         const output = TSF.tsApis.formatDiagnostic(diagnostic);
-                        console.log('output', output)
-                        // console.log(
-                        //     'TSF.tsApis.simplifyDiagnostic(diagnostic)',
-                        //     TSF.tsApis.simplifyDiagnostic(diagnostic)
-                        // );
+                        console.log('\t', output)
 
                         return (
                             strip(output).includes(
