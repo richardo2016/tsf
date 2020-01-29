@@ -1,11 +1,16 @@
 const test = require('test')
 test.setup()
 
-const Mod = require('../')
+const TSF = require('../')
 
 describe("Sample", function () {
     it("Basic", function () {
-        assert.equal(Mod, null)
+        assert.isObject(TSF)
+        
+        assert.isObject(TSF.compilers)
     });
 })
+
+require('./specs/spec.from-memory');
+
 test.run(console.DEBUG)

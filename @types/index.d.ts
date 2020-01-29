@@ -6,7 +6,7 @@ declare namespace FibAppStarterNS {
     }
 }
 
-declare module "@anoymous/app" {
+declare module "@fibjs/tsf" {
     const mod: FibAppStarterNS.ExportModule
     export = mod
 }

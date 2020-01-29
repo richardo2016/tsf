@@ -1,5 +1,5 @@
 {
-	"name": "@anoymous/app",
+	"name": "@fibjs/tsf",
 	"version": "0.0.1",
 	"description": "Template For Fibjs App",
 	"keywords": [
@@ -22,14 +22,17 @@
 		"fibjs": "*"
 	},
 	"analyse": false,
-	"dependencies": {},
+	"dependencies": {
+		"@fibjs/mkdirp": "^1.0.1"
+	},
 	"devDependencies": {
 		"@fibjs/ci": "^2.3.0",
 		"@fibjs/types": "^0.27.1",
 		"cross-env": "^5.2.0",
 		"fib-rollup": "^0.4.0",
-		"fib-typify": "^0.6.0",
-		"rollup-plugin-commonjs": "^9.2.1"
+		"fib-typify": "^0.7.0",
+		"rollup-plugin-commonjs": "^9.2.1",
+		"typescript": "^3.7.5"
 	},
 	"ci": {
 		"type": "travis, appveyor",
@@ -37,7 +40,8 @@
 			"0.26.0",
 			"0.26.1",
 			"0.27.0",
-			"0.28.0"
+			"0.28.0",
+			"0.29.0"
 		]
 	}
 }

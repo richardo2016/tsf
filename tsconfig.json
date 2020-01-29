@@ -1,8 +1,8 @@
 {
+    "extends": "./tsconfig.dft.json",
     "compilerOptions": {
-        "target": "es6",
-        "module": "commonjs",
         "noImplicitAny": true,
+        "alwaysStrict": false,
         "noImplicitUseStrict": true,
         "inlineSourceMap": false,
         "lib": [
@@ -16,5 +16,8 @@
         "typeRoots": [
             "@types/index.d.ts"
         ]
-    }
+    },
+    "include": [
+        "src"
+    ]
 }

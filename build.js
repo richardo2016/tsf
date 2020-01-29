@@ -11,13 +11,13 @@ typify.compileDirectoryTo(
     }
 )
 
-if (util.buildInfo().fibjs >= '0.26.0') {
-    process.run(process.execPath, ['rollup.build.js'])
-} else {
-    fs.copy(
-        require.resolve('./lib/index.js'),
-        path.resolve('./lib/index.cjs.js')
-    )
-}
+// if (util.buildInfo().fibjs >= '0.26.0') {
+//     process.run(process.execPath, ['rollup.build.js'])
+// } else {
+//     fs.copy(
+//         require.resolve('./lib/index.js'),
+//         path.resolve('./lib/index.cjs.js')
+//     )
+// }
 
     
