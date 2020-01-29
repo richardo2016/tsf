@@ -1,0 +1,43 @@
+{
+	"name": "@anoymous/app",
+	"version": "0.0.1",
+	"description": "Template For Fibjs App",
+	"keywords": [
+		"fibjs"
+	],
+	"author": "Richard <richardo2016@gmail.com>",
+	"license": "MIT",
+	"repository": "",
+	"types": "@types/index.d.ts",
+	"main": "./lib",
+	"unpkg": "./lib/index.cjs.js",
+	"jsdelivr": "./lib/index.cjs.js",
+	"scripts": {
+		"build": "fibjs build.js",
+		"test": "fibjs test",
+		"ci": "npm run build && npm run test",
+		"prepublishOnly": "npm run build"
+	},
+	"engines": {
+		"fibjs": "*"
+	},
+	"analyse": false,
+	"dependencies": {},
+	"devDependencies": {
+		"@fibjs/ci": "^2.3.0",
+		"@fibjs/types": "^0.27.1",
+		"cross-env": "^5.2.0",
+		"fib-rollup": "^0.4.0",
+		"fib-typify": "^0.6.0",
+		"rollup-plugin-commonjs": "^9.2.1"
+	},
+	"ci": {
+		"type": "travis, appveyor",
+		"version": [
+			"0.26.0",
+			"0.26.1",
+			"0.27.0",
+			"0.28.0"
+		]
+	}
+}
