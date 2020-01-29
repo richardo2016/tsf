@@ -5,6 +5,8 @@ const vm = require('vm')
 const fs = require('fs')
 const path = require('path')
 
+const rmdirr = require('@fibjs/rmdirr')
+
 const TSF = require('../../')
 
 const rawTest = {
@@ -34,6 +36,10 @@ describe('from-memory', () => {
         resetSbox()
     })
 
+    before(() => {
+        rmdirr(path.resolve(__dirname, './dist/from-memory'))
+    })
+
     function assertSandboxForBasicTs (rawModule) {
         assert.isObject(rawModule)
         assert.isFunction(rawModule.add)
@@ -48,12 +54,12 @@ describe('from-memory', () => {
     }
 
     it('@module', () => {
-        assert.isFunction(TSF.compilers.compile)
-        assert.isFunction(TSF.compilers.compileTo)
+        assert.isFunction(TSF.compilers.compileFrom)
+        assert.isFunction(TSF.compilers.compileFrom)
     });
 
     it('compile', () => {
-        const jsscript = TSF.compilers.compile(rawTest.input)
+        const jsscript = TSF.compilers.compileFrom(rawTest.input)
         assert.isString(jsscript)
 
         sbox.addScript(rawTest.sboxName, new Buffer(jsscript))
@@ -64,11 +70,11 @@ describe('from-memory', () => {
 
     it('@error: compile empty input', () => {
         assert.throws(() => {
-            TSF.compilers.compile()
+            TSF.compilers.compileFrom()
         })
 
         try {
-            TSF.compilers.compile()
+            TSF.compilers.compileFrom()
         } catch (error) {
             assert.equal(error.literalCode, TSF.Error.LITERALS.TYPESCRIPT_SOURCE_EMPTY)
         }
@@ -76,7 +82,7 @@ describe('from-memory', () => {
 
     it('compile to file', () => {
         const target = path.resolve(__dirname, './dist/from-memory/compileToFile.js')
-        TSF.compilers.compileTo(rawTest.input, target)
+        TSF.compilers.compileFromTo(rawTest.input, target)
         assert.equal(fs.exists(target), true)
 
         const rawModule = sbox.require(target, __dirname)

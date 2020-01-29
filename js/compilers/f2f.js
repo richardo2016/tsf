@@ -15,7 +15,7 @@ const { memoryToFile } = require('./m2f')
 exports.compileFileTo = function (sourcefile = '', targetpath = '', tsCompilerOptions, options) {
     const { overwrite = false } = options || {};
 
-    UTILS.checkFilepathStat(sourcefile)
+    UTILs.checkFilepathStat(sourcefile)
 
     const tsRaw = fs.readTextFile(sourcefile)
     if (!tsRaw)
@@ -27,14 +27,15 @@ exports.compileFileTo = function (sourcefile = '', targetpath = '', tsCompilerOp
         throw new TSFError(`target ${targetpath} existed!`, TSFError.LITERALS.FILE_EXISTED)
     } catch (error) {
         if (error.literalCode === TSFError.LITERALS.FILE_EXISTED && !overwrite) {
+            error.literalCode = TSFError.LITERALS.TARGET_FILE_EXISTED
             throw error
         }
 
         if (error.literalCode === TSFError.LITERALS.NOT_FILE && fs.stat(targetpath).isDirectory()) {
-            const sbasename = path.basename(sourcefile)
+            const sbasename = UTILs.replaceExtname(path.basename(sourcefile))
             targetpath = path.join(targetpath, sbasename)
         }
     }
     
-    return memoryToFile(tsRaw, targetpath, tsCompilerOptions)
+    return memoryToFile(tsRaw, targetpath, tsCompilerOptions, options)
 }

@@ -13,11 +13,19 @@ const CODES = {
 
     TYPESCRIPT_SOURCE_EMPTY: ++_pos_counter,
 
+    INVALID_FILEPATH: ++_pos_counter,
     INVALID_BASENAME: ++_pos_counter,
+
     FILE_EXISTED: ++_pos_counter,
-    FILE_CONTENT_EMPTY: ++_pos_counter,
     DIR_EXISTED: ++_pos_counter,
     SYMLINK_EXISTED: ++_pos_counter,
+
+    TARGET_FILE_EXISTED: ++_pos_counter,
+    FILE_CONTENT_EMPTY: ++_pos_counter,
+
+    TS_DIAGNOTICS_INFO: ++_pos_counter,
+
+    TYPE_ASSERT: ++_pos_counter,
 };
 _pos_counter = _nege_counter = 0;
 

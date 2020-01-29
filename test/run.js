@@ -3,7 +3,7 @@ test.setup()
 
 const TSF = require('../')
 
-describe("Sample", function () {
+describe("TSF", function () {
     it("Basic", function () {
         assert.isObject(TSF)
         
@@ -12,5 +12,6 @@ describe("Sample", function () {
 })
 
 require('./specs/spec.from-memory');
+require('./specs/spec.from-file');
 
 test.run(console.DEBUG)

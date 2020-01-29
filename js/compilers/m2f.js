@@ -4,20 +4,19 @@ const path = require('path')
 const UTILs = require('../_utils')
 const TSFError = require('../error')
 
-const { compile } = require('./memory')
+const { transpileTypescript } = require('./memory')
 
 exports.memoryToFile = function (tsRaw = '', targetpath = '', tsCompilerOptions, options) {
     const { overwrite = false } = options || {};
 
     try {
-        const tstat = UTILs.checkFilepathStat(targetpath)
-    
-        if (tstat.isFile() && !overwrite)
-            throw new TSFError(`${UTILs.getLogPrefix('api', 'memoryToFile')}file '${targetpath}' has existed.`, TSFError.LITERALS.FILE_EXISTED)
-
-        if (tstat.isDirectory())
-            throw new TSFError(`${UTILs.getLogPrefix('api', 'memoryToFile')}directory '${targetpath}' has existed, you cannot overwrite it.`, TSFError.LITERALS.DIR_EXISTED)
-    } catch (error) {}
+        tstat = UTILs.checkFSStat(targetpath, 'file')
+        if (!overwrite)
+            throw new TSFError(`target path ${targetpath} existed`, TSFError.LITERALS.FILE_EXISTED)
+    } catch (error) {
+        if (error.literalCode !== TSFError.LITERALS.NOT_EXISTED)
+            throw error
+    }
 
     const tbasedir = path.dirname(targetpath)
     try {
@@ -33,5 +32,5 @@ exports.memoryToFile = function (tsRaw = '', targetpath = '', tsCompilerOptions,
         }
     }
 
-    fs.writeTextFile(targetpath, compile(tsRaw, tsCompilerOptions))
+    fs.writeTextFile(targetpath, transpileTypescript([tsRaw, tsCompilerOptions]))
 }

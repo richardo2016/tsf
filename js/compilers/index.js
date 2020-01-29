@@ -1,12 +1,24 @@
 const UTILS = require('../_utils')
 
-const { compile: compileTypescript } = require('./memory');
+const CORE = require('../core');
+const { transpileTypescript } = require('./memory');
 const { memoryToFile } = require('./m2f');
 const { compileFileTo } = require('./f2f');
+const { compileFile } = require('./f2m')
 
-exports.compile = function (tssource, options) {
-    if (!options)
-        return compileTypescript(tssource)
+exports.compileFrom = function (source, options) {    
+    const {
+        tsCompilerOptions = {},
+        ...restOptions
+    } = options || {}
+
+    try {
+        UTILS.checkFilepathStat(source)
+    } catch (error) {
+        return transpileTypescript([source, tsCompilerOptions], restOptions)
+    }
+
+    return compileFile(source, tsCompilerOptions, restOptions)
 }
 
 /**
@@ -17,12 +29,17 @@ exports.compile = function (tssource, options) {
  * @param source: typescript source, or file path of it.
  * @param target: target file path, MUST BE EXISTED
  */
-exports.compileTo = function (source, target, options) {    
+exports.compileFromTo = function (source, target, options) {    
+    const {
+        tsCompilerOptions = {},
+        ...restOpts
+    } = options || {}
+
     try {
-        UTILS.checkFilepathStat(sourcefile)
-    } catch (error) {
-        return memoryToFile(source, target)
+        UTILS.checkFilepathStat(source)
+    } catch (error) {  
+        return memoryToFile(source, target, tsCompilerOptions, restOpts)
     }
 
-    return compileFileTo(source, target)
+    return compileFileTo(source, target, tsCompilerOptions, restOpts)
 }

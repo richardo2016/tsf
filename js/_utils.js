@@ -63,7 +63,6 @@ exports.defaultSandboxFallback = function (name) {
     return require(name)
 }
 
-const compileModule = require('./compilers/module').compileModule
 const defaultSourceMapInstallScriptName = exports.defaultSourceMapInstallScriptName = path.resolve(__dirname, './runtime/source-map-install.js')
 
 const saveCacheMap = function (filename, mapContent) {
@@ -134,21 +133,8 @@ exports.fixTsRaw = function (tsRaw) {
     return tsRaw
 }
 
-function compileCallback (buf, args, moduleOptions) {
-   let tsScriptString = buf + ''
-
-    if (!tsScriptString) return undefined
-
-    const compiledModule = compileModule(tsScriptString, {
-        ...moduleOptions,
-        fileName: args.filename,
-        moduleName: args.filename
-    })
-    return compiledModule
-}
-
-exports.replaceSuffix = function (target = '', {
-    to_replace = /.tsx?$/,
+exports.replaceExtname = function (target = '', {
+    to_replace = /.tsx?$/i,
     replace_to = '.js'
 } = {}) {
     if (!target) return target
@@ -179,6 +165,43 @@ exports.checkDirnameStat = function checkFilepathStat (filepath) {
     const stat = fs.stat(filepath)
     if (!stat.isDirectory())
         throw new TSFError(`path '${filepath}' is not one directory`, TSFError.LITERALS.NOT_DIR)
+
+    return stat
+}
+
+/**
+ * @param allowedFSType
+ *  - none(default): allow it not existed
+ *  - file: allow it file
+ *  - directory: allow it directory
+ *  - symlink: allow it symlink
+ * 
+ * @throw throw exception if filepathOrStat is not allowed file type
+ * @return return 0/stat when valid
+ */
+exports.checkFSStat = function checkFSStat (filepath, allowedFSType = 'file') {
+    if (!filepath || typeof filepath !== 'string')
+        throw new TSFError(`empty filepath ${filepath}`, TSFError.LITERALS.INVALID_FILEPATH)
+
+    if (!fs.exists(filepath))
+        throw new TSFError(`invalid filepath ${filepath}`, TSFError.LITERALS.NOT_EXISTED)
+
+    const stat = fs.stat(filepath)
+
+    switch (allowedFSType) {
+        case 'file':
+            if (!stat.isFile())
+                throw new TSFError(`${UTILs.getLogPrefix('api', 'checkFSStat')}path '${targetpath}' is not file.`, TSFError.LITERALS.NOT_FILE)
+            break
+        case 'directory':
+            if (!stat.isDirectory())
+                throw new TSFError(`${UTILs.getLogPrefix('api', 'checkFSStat')}path '${targetpath}' is not directory.`, TSFError.LITERALS.NOT_DIR)
+            break
+        case 'symlink':
+            if (!stat.isSymbolicLink())
+                throw new TSFError(`${UTILs.getLogPrefix('api', 'checkFSStat')}path '${targetpath}' is not symbollink.`, TSFError.LITERALS.NOT_SYMLINK)
+            break
+    }
 
     return stat
 }
