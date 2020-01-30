@@ -38,7 +38,7 @@ exports.getLogPrefix = function getLogPrefix (domain = 'default', action = 'acti
 }
 
 
-exports.extendCompilerConfigFromTSConfig = function (origConfig = {}) {
+const extendCompilerConfigFromTSConfig = exports.extendCompilerConfigFromTSConfig = function (origConfig = {}) {
     let tsConfigFilepath = path.resolve(process.cwd(), 'tsconfig.json')
 
     if (tsConfigFilepath && fs.exists(tsConfigFilepath) && fs.stat(tsConfigFilepath).isFile()) {
@@ -49,10 +49,10 @@ exports.extendCompilerConfigFromTSConfig = function (origConfig = {}) {
     return origConfig
 }
 
-exports.defaultCompilerOptions = require('../tsconfig.dft.json')
+const defaultCompilerOptions = exports.defaultCompilerOptions = require('../tsconfig.dft.json')
 
 exports.getCwdTsCompilerOptions = function () {
-    return exports.extendCompilerConfigFromTSConfig(util.extend({}, exports.defaultCompilerOptions))
+    return extendCompilerConfigFromTSConfig(util.extend({}, defaultCompilerOptions))
 }
 
 const TS_SUFFIX = exports.TS_SUFFIX = '.ts'

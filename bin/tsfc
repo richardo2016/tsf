@@ -1,0 +1,2 @@
+#!/usr/bin/env fibjs
+require('../lib/tsfc.js')

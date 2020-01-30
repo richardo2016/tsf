@@ -34,6 +34,8 @@ exports.compileFromTo = function (source, target, options) {
         ...restOpts
     } = options || {}
 
+    restOpts.toModule = false
+
     try {
         UTILS.checkFilepathStat(source)
     } catch (error) {  

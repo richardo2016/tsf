@@ -1,6 +1,8 @@
 const typescript = require('typescript')
 const ts = typescript
 
+exports.typescript = typescript
+
 // require('./ts.sys').configTsSys(typescript);
 require('./ts.tsf_createDiagnosticReporter').config(typescript);
 

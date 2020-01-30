@@ -1,12 +1,11 @@
 'use strict';
 
-const typescript = require('typescript')
+const { typescript } = require('./typescript-apis/runtime')
 const ts = typescript;
 const { extend } = require('util')
+const os = require('os')
 
 const TSFError = require('./error')
-
-require('./typescript-apis/runtime');
 
 // CompilerOptions
 const DFLT_COMPILEROPTIONS = {
@@ -38,7 +37,6 @@ exports.transpileModule = function (input, transpileOptions, locals) {
 
     transpileOptions.compilerOptions = _getOptions(transpileOptions.compilerOptions, locals)
 
-    // return typescript.transpileModule(input, transpileOptions)
     return tsf_transpileModule(input, transpileOptions)
 }
 
@@ -78,10 +76,17 @@ const tsf_transpileModule = function (input, transpileOptions) {
     if (transpileOptions.renamedDependencies) {
         sourceFile.renamedDependencies = ts.createMapFromTemplate(transpileOptions.renamedDependencies);
     }
-    const newLine = ts.getNewLineCharacter(options);
+    const newLine = os.EOL || ts.getNewLineCharacter(options);
     // Output
     let outputText;
     let sourceMapText;
+
+    function getDefaultLibLocation() {
+        if (ts.sys)
+            return ts.getDirectoryPath(ts.normalizePath(ts.sys.getExecutingFilePath()));
+
+        return "lib.d.ts"
+    }
     // Create a compilerHost object to allow the compiler to read and write files
     const compilerHost = {
         getSourceFile: function (fileName) { return fileName === ts.normalizePath(inputFileName) ? sourceFile : undefined; },
@@ -95,15 +100,29 @@ const tsf_transpileModule = function (input, transpileOptions) {
                 outputText = text;
             }
         },
-        getDefaultLibFileName: function () { return "lib.d.ts"; },
+        getDefaultLibFileName: function (options) { return ts.combinePaths(getDefaultLibLocation(), ts.getDefaultLibFileName(options)); },
         useCaseSensitiveFileNames: function () { return false; },
         getCanonicalFileName: function (fileName) { return fileName; },
-        getCurrentDirectory: function () { return ""; },
+        getCurrentDirectory: function () {
+            return ts.sys.getCurrentDirectory();
+        },
         getNewLine: function () { return newLine; },
         fileExists: function (fileName) { return fileName === inputFileName; },
         readFile: function () { return ""; },
         directoryExists: function () { return true; },
-        getDirectories: function () { return []; }
+        getDirectories: function () { return []; },
+
+
+        getFileSize: function (path) {
+            try {
+                const stat = _fs.statSync(path);
+                if (stat.isFile()) {
+                    return stat.size;
+                }
+            }
+            catch (_a) { }
+            return 0;
+        },
     };
     const program = ts.createProgram([inputFileName], options, compilerHost);
     if (transpileOptions.reportDiagnostics) {

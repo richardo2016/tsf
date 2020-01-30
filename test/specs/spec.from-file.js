@@ -3,6 +3,7 @@ test.setup();
 
 const vm = require('vm')
 
+const fs = require('fs')
 const path = require('path')
 const rmdirr = require('@fibjs/rmdirr')
 const mkdirp = require('@fibjs/mkdirp')
@@ -131,6 +132,94 @@ describe('from file', () => {
         assertSandboxForBasicTs(
             sbox.require(path.resolve(fsFileTestBasic.outputDirname, './basic.js'), __dirname)
         )
+    })
+
+    describe('tsx', () => {
+        const compilerOptionsJsx = {
+            target: 'es6',
+            module: 'commonjs',
+            jsx: "react"
+        }
+
+        const outputDirname = path.join(__dirname, './dist/from-file/jsx');
+
+        const sandbox = new vm.SandBox({
+            'react': {},
+            'react-native': {},
+            'preact': {},
+        })
+
+        ;[
+            {
+                description: 'compile tsx(fragment)',
+
+                inputFilepath: path.resolve(SOURCE_BASE, './tsx/fragment.tsx'),
+                outputFilepath: path.resolve(__dirname, './dist/from-file/jsx/fragment.js'),
+                
+                jsx: 'React',
+                jsxFactory: 'React.createElement'
+            },
+            {
+                description: 'compile tsx',
+
+                inputFilepath: path.resolve(SOURCE_BASE, './tsx/html.div.tsx'),
+                outputFilepath: path.resolve(__dirname, './dist/from-file/jsx/html.div.js'),
+                
+                jsx: 'React',
+                jsxFactory: 'React.createElement'
+            },
+            {
+                description: 'compile tsx(preact)',
+
+                inputFilepath: path.resolve(SOURCE_BASE, './tsx/html.div.tsx'),
+                outputFilepath: path.resolve(__dirname, './dist/from-file/jsx/html.div.preact.js'),
+                
+                jsx: 'preserve',
+                jsxFactory: 'preact.createElement'
+            },
+            {
+                description: 'compile tsx(h)',
+
+                inputFilepath: path.resolve(SOURCE_BASE, './tsx/html.div.tsx'),
+                outputFilepath: path.resolve(__dirname, './dist/from-file/jsx/html.div.h.js'),
+                
+                jsx: 'preserve',
+                jsxFactory: 'h'
+            },
+            {
+                description: 'compile tsx(h)',
+
+                inputFilepath: path.resolve(SOURCE_BASE, './tsx/native.tsx'),
+                outputFilepath: path.resolve(__dirname, './dist/from-file/jsx/native.js'),
+                
+                jsx: 'react-native',
+                jsxFactory: 'h'
+            },
+        ].forEach(({ description, inputFilepath, outputFilepath, jsxFactory }) => {
+            it(`${description}`, () => {
+                const jsscript = TSF.compilers.compileFrom(inputFilepath, { compilerOptions: {...compilerOptionsJsx, jsxFactory} })
+    
+                assert.ok( jsscript.includes(`${jsxFactory}`))
+            })
+
+
+            it(`[toModule]${description}`, () => {
+                const rawModule = TSF.compilers.compileFrom(inputFilepath, { sandbox, toModule: true, compilerOptions: {...compilerOptionsJsx, jsxFactory} })
+    
+                assert.isFunction( rawModule.default )
+            })
+
+            it(`${description} to target`, () => {
+                try { rmdirr(outputFilepath) } catch (error) {}
+
+                assert.isFalse(fs.exists(outputFilepath))
+    
+                TSF.compilers.compileFromTo(inputFilepath, outputFilepath, { compilerOptions: {...compilerOptionsJsx, jsxFactory} })
+    
+                assert.isTrue(fs.exists(outputFilepath))
+                assert.ok( fs.readTextFile(outputFilepath).includes(`${jsxFactory}`))
+            })
+        });
     })
 
     describe('@diagnostics', () => {

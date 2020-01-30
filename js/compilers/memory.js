@@ -1,6 +1,7 @@
 const vm = require('vm')
 const uuid = require('uuid')
-const ts = require('typescript')
+
+const { typescript : ts } = require('../typescript-apis/runtime')
 
 const TSFError = require('../error')
 
@@ -45,11 +46,13 @@ const transpileTypescript = exports.transpileTypescript = function (
 ) {
     const {
         toModule = false,
+        sandbox: mSandbox = GLOBAL_PROXY_SANDBOX,
         onTranspiledModule = defaultOnTranspiledModuleResult,
         /* transpile about configuration :start */
         fileName,
         diagnostics,
-        moduleName,
+        moduleName = fileName,
+        renamedDependencies = {}
         /* transpile about configuration :end */
     } = options || {}
 
@@ -57,7 +60,7 @@ const transpileTypescript = exports.transpileTypescript = function (
         throw new TSFError(`'onTranspiledModule' must be function!`, TSFError.LITERALS.TYPE_ASSERT)
 
     if (diagnostics && !Array.isArray(diagnostics))
-        throw new TSFError(`'diagnostics' must be diagnostics Array!`, TSFError.LITERALS.TYPE_ASSERT)
+        throw new TSFError(`'diagnostics' must be diagnostic info Array!`, TSFError.LITERALS.TYPE_ASSERT)
 
     if (!toModule) {
         const result = CORE.transpileModule(tsRaw, {
@@ -65,7 +68,7 @@ const transpileTypescript = exports.transpileTypescript = function (
             fileName,
             reportDiagnostics: !!diagnostics,
             moduleName,
-            renamedDependencies: {},
+            renamedDependencies,
             transformers: {}
         })
 
@@ -78,10 +81,10 @@ const transpileTypescript = exports.transpileTypescript = function (
 
     const jsScript = transpileTypescript(tsRaw, compilerOptions, { ...options, toModule: false })
 
-    const sname = `${SCRIPT_NAME}//${uuid.snowflake().hex()}`
-    GLOBAL_PROXY_SANDBOX.addScript(sname, jsScript)
+    const mName = [`${SCRIPT_NAME}//${uuid.snowflake().hex()}?sourcefile=${fileName}&modname=moduleName`].join('')
+    mSandbox.addScript(mName, jsScript)
 
-    return GLOBAL_PROXY_SANDBOX.require(sname, __dirname)
+    return mSandbox.require(mName, __dirname)
 }
 
 const defaultOnTranspiledModuleResult = function defaultOnTranspiledModuleResult (result, options) {

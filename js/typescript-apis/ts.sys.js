@@ -1,4 +1,4 @@
-const typescript = require('typescript')
+const { typescript } = require('./runtime')
 
 exports.configTsSys = (ts = typescript) => {
     ts.sys = (function () {
@@ -23,6 +23,7 @@ exports.configTsSys = (ts = typescript) => {
             const fsWatchFile = ts.createSingleFileWatcherPerName(fsWatchFileWorker, useCaseSensitiveFileNames);
             let dynamicPollingWatchFile;
             const fibSystem = {
+                xxx: 123123,
                 args: process.argv.slice(2),
                 newLine: _os.EOL,
                 useCaseSensitiveFileNames: useCaseSensitiveFileNames,

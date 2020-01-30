@@ -23,7 +23,3 @@ exports.simplifyDiagnostic = function (diag) {
         category: diag.category
     })
 }
-
-exports.summarize = function (diagnostic) {
-
-}

@@ -1,4 +1,4 @@
-const typescript = require('typescript')
+const { typescript } = require('./runtime')
 
 /**
  * @see https://sourcegraph.com/github.com/microsoft/TypeScript@6769313/-/blob/src/compiler/watch.ts#L20
