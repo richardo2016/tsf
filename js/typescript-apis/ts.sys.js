@@ -4,7 +4,7 @@ const { typescript } = require('./runtime')
  * useless now
  */
 exports.configTsSys = (ts = typescript) => {
-    return ;
+    // return ;
     ts.sys = (function () {
         const byteOrderMarkIndicator = "\uFEFF";
         function getFibSystem() {
@@ -27,7 +27,6 @@ exports.configTsSys = (ts = typescript) => {
             const fsWatchFile = ts.createSingleFileWatcherPerName(fsWatchFileWorker, useCaseSensitiveFileNames);
             let dynamicPollingWatchFile;
             const fibSystem = {
-                xxx: 123123,
                 args: process.argv.slice(2),
                 newLine: _os.EOL,
                 useCaseSensitiveFileNames: useCaseSensitiveFileNames,

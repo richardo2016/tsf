@@ -11,16 +11,16 @@ const { directoryToDirectory } = require('./d2d')
 exports.compileFrom = function (source, options) {    
     const {
         compilerOptions = {},
-        ...restOptions
+        ...tsfTranspileOptions
     } = options || {}
 
     try {
         UTILS.checkFilepathStat(source)
     } catch (error) {
-        return transpileTypescript(source, compilerOptions, restOptions)
+        return transpileTypescript(source, compilerOptions, tsfTranspileOptions)
     }
 
-    return compileFile(source, compilerOptions, restOptions)
+    return compileFile(source, compilerOptions, tsfTranspileOptions)
 }
 
 /**
@@ -36,14 +36,14 @@ exports.compileFrom = function (source, options) {
 exports.compileFromTo = function (source, target, options) {    
     const {
         compilerOptions = {},
-        ...restOpts
+        ...tsfTranspileOptions
     } = options || {}
 
-    restOpts.toModule = false
+    tsfTranspileOptions.toModule = false
 
     try {
         UTILS.checkFSStat(source, 'directory')
-        return directoryToDirectory(source, target, compilerOptions, restOpts)
+        return directoryToDirectory(source, target, compilerOptions, tsfTranspileOptions)
     } catch (error) {
         switch (error.literalCode) {
             default:
@@ -56,7 +56,7 @@ exports.compileFromTo = function (source, target, options) {
 
     try {
         UTILS.checkFSStat(source, 'file')
-        return compileFileTo(source, target, compilerOptions, restOpts)
+        return compileFileTo(source, target, compilerOptions, tsfTranspileOptions)
         
     } catch (error) {
         switch (error.literalCode) {
@@ -68,5 +68,5 @@ exports.compileFromTo = function (source, target, options) {
         }
     }
 
-    return memoryToFile(source, target, compilerOptions, restOpts)
+    return memoryToFile(source, target, compilerOptions, tsfTranspileOptions)
 }

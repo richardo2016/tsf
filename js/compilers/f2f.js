@@ -1,5 +1,6 @@
 const fs = require('fs')
 const path = require('path')
+const assert = require('assert')
 
 const UTILs = require('../_utils')
 const TSFError = require('../error')
@@ -36,6 +37,9 @@ exports.compileFileTo = function (sourcefile = '', targetpath = '', tsCompilerOp
             targetpath = path.join(targetpath, sbasename)
         }
     }
+
+    options.fileName = sourcefile
+    assert(options.fileName, '[compileFileTo] transpileOptions.fileName should be set when compile from file')
     
     return memoryToFile(tsRaw, targetpath, tsCompilerOptions, options)
 }

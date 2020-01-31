@@ -47,17 +47,14 @@ const transpileTypescript = exports.transpileTypescript = function (
     const {
         toModule = false,
         sandbox: mSandbox = GLOBAL_PROXY_SANDBOX,
-        onTranspiledModule = defaultOnTranspiledModuleResult,
         /* transpile about configuration :start */
         fileName,
-        diagnostics,
         moduleName = fileName,
-        renamedDependencies = {}
+        renamedDependencies = {},
+        diagnostics,
         /* transpile about configuration :end */
+        ...tsfOptions
     } = options || {}
-
-    if (typeof onTranspiledModule !== 'function')
-        throw new TSFError(`'onTranspiledModule' must be function!`, TSFError.LITERALS.TYPE_ASSERT)
 
     if (diagnostics && !Array.isArray(diagnostics))
         throw new TSFError(`'diagnostics' must be diagnostic info Array!`, TSFError.LITERALS.TYPE_ASSERT)
@@ -69,17 +66,16 @@ const transpileTypescript = exports.transpileTypescript = function (
             reportDiagnostics: !!diagnostics,
             moduleName,
             renamedDependencies,
-            transformers: {}
+            transformers: {},
+            tsfOptions
         })
 
         ts.addRange(diagnostics, result.diagnostics)
 
-        onTranspiledModule(result, options)
-
         return result.outputText
     }
 
-    const jsScript = transpileTypescript(tsRaw, compilerOptions, { ...options, toModule: false })
+    const jsScript = transpileTypescript(tsRaw, compilerOptions, { ...tsfOptions, toModule: false })
 
     const mName = [`${SCRIPT_NAME}//${uuid.snowflake().hex()}?sourcefile=${fileName}&modname=moduleName`].join('')
     mSandbox.addScript(mName, jsScript)

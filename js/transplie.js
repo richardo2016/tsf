@@ -1,67 +1,13 @@
-const fs = require('fs')
-const { extend } = require('util')
-
-const { typescript } = require('./typescript-apis/runtime')
-const ts = typescript;
-const os = require('os')
-
-const TSFError = require('./error')
-
-// CompilerOptions
-const DFLT_COMPILEROPTIONS = {
-    module: typescript.ModuleKind.CommonJS
-}
-
-function _getOptions(compilerOptions, locals) {
-    compilerOptions = extend({}, DFLT_COMPILEROPTIONS, compilerOptions, locals)
-
-    if (compilerOptions.sourceMap) {
-        console.warn(`[tsf] don't support sourceMap now, tranform to 'inlineSourceMap' automatically.`)
-        compilerOptions.sourceMap = false
-        compilerOptions.inlineSourceMap = true
-    }
-
-    return compilerOptions
-}
-
-exports.inputExt = '.ts'
-exports.outputExt = '.js'
-exports.logPrefix = '[tsf]'
-
-exports.transpileModule = function (input, tsfTranspileOptions) {
-    if (!input)
-        throw new TSFError('typescript inputed empty', TSFError.LITERALS.TYPESCRIPT_SOURCE_EMPTY)
-
-    tsfTranspileOptions = extend({}, tsfTranspileOptions)
-    tsfTranspileOptions.compilerOptions = _getOptions(tsfTranspileOptions.compilerOptions)
-
-    return compile(input, tsfTranspileOptions)
-}
-
 /**
  * @see https://sourcegraph.com/github.com/microsoft/TypeScript@6769313/-/blob/src/services/transpile.ts#L26
  * @see https://github.com/microsoft/TypeScript/wiki/Using-the-Compiler-API
  * 
  * @description customized typescript compiler
  * 
- * @param {*} input typescript inputs
+ * @param {*} input input typescript
  * @param {*} transpileOptions transpile options
  */
-const WRITE_TARGETS = {
-    MEMORY: 'MEMORY',
-    IO: 'IO'
-}
-const compile = function (
-    input,
-    transpileOptions
-) {
-    const { tsfOptions = {} } = transpileOptions || {}
-    const { writeTarget = WRITE_TARGETS.MEMORY } = tsfOptions || {};
-    
-    assert(!!WRITE_TARGETS[writeTarget], `writeTarget must be one of ${Object.values(WRITE_TARGETS).join(', ')}`)
-    
-    if (!WRITE_TARGETS[writeTarget]) writeTarget = WRITE_TARGETS.MEMORY;
-
+const tsf_transpileModule = function (input, transpileOptions) {
     const diagnostics = [];
     const options = transpileOptions.compilerOptions ? ts.fixupCompilerOptions(transpileOptions.compilerOptions, diagnostics) : {};
     // mix in default options
@@ -82,7 +28,6 @@ const compile = function (
     options.allowNonTsExtensions = true;
 
     // if jsx is specified then treat file as .tsx
-
     const inputFileName = transpileOptions.fileName || (transpileOptions.compilerOptions && transpileOptions.compilerOptions.jsx ? "module.tsx" : "module.ts");
     const sourceFile = ts.createSourceFile(inputFileName, input, options.target); // TODO: GH#18217
     if (transpileOptions.moduleName) {
@@ -104,47 +49,24 @@ const compile = function (
     }
     // Create a compilerHost object to allow the compiler to read and write files
     const compilerHost__ = {
-        /* @tsf_checked */
-        getSourceFile: function (fileName) {
-            return fileName === ts.normalizePath(inputFileName) ? sourceFile : undefined;
-        },
+        getSourceFile: function (fileName) { return fileName === ts.normalizePath(inputFileName) ? sourceFile : undefined; },
         writeFile: function (name, text) {
-            /* 
-                if writeTarget === WRITE_TARGETS.MEMORY, transpileOptions.fileName must be provided, as `name` here would be 
-                computed automatically(transpileOptions.outDir would be referenced in it)
-            */
-            if (writeTarget === WRITE_TARGETS.MEMORY || !transpileOptions.fileName)
-                if (ts.fileExtensionIs(name, ".map")) {
-                    ts.Debug.assertEqual(sourceMapText, undefined, "Unexpected multiple source map outputs, file:", name);
-                    sourceMapText = text;
-                } else {
-                    ts.Debug.assertEqual(outputText, undefined, "Unexpected multiple outputs, file:", name);
-                    
-                    outputText = text;
-                }
-            else /* write name */
-                fs.writeTextFile(name, text)
+            if (ts.fileExtensionIs(name, ".map")) {
+                ts.Debug.assertEqual(sourceMapText, undefined, "Unexpected multiple source map outputs, file:", name);
+                sourceMapText = text;
+            } else {
+                ts.Debug.assertEqual(outputText, undefined, "Unexpected multiple outputs, file:", name);
+                outputText = text;
+            }
         },
-        getDefaultLibFileName: function (options) {
-            return ts.combinePaths(getDefaultLibLocation(), ts.getDefaultLibFileName(options));
-        },
-        useCaseSensitiveFileNames: function () {
-            return false;
-        },
-        getCanonicalFileName: function (fileName) {
-            // console.log('[compilerHost::getCanonicalFileName]', fileName)
-            return fileName;
-        },
+        getDefaultLibFileName: function (options) { return ts.combinePaths(getDefaultLibLocation(), ts.getDefaultLibFileName(options)); },
+        useCaseSensitiveFileNames: function () { return false; },
+        getCanonicalFileName: function (fileName) { return fileName; },
         getCurrentDirectory: function () {
             return ts.sys.getCurrentDirectory();
         },
-        getNewLine: function () {
-            return newLine;
-        },
-        fileExists: function (fileName) {
-            // console.log('[compilerHost::fileExists]', fileName, inputFileName)
-            return fileName === inputFileName;
-        },
+        getNewLine: function () { return newLine; },
+        fileExists: function (fileName) { return fileName === inputFileName; },
         readFile: function () { return ""; },
         directoryExists: function () { return true; },
         getDirectories: function () { return []; },
@@ -181,7 +103,7 @@ const compile = function (
         transpileOptions.transformers
     );
 
-    if (writeTarget === WRITE_TARGETS.MEMORY && outputText === undefined)
+    if (outputText === undefined)
         return ts.Debug.fail("Output generation failed");
         
     return { outputText: outputText, diagnostics: diagnostics, sourceMapText: sourceMapText };

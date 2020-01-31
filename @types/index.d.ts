@@ -1,12 +1,21 @@
 /// <reference types="@fibjs/types" />
+/// <reference types="typescript" />
 
-declare namespace FibAppStarterNS {
+import ts = require("typescript")
+
+declare namespace TSFNamespace {
     interface ExportModule {
 
+    }
+
+    interface TsfTranspileOptions extends ts.TranspileOptions {
+        tsfOptions: {
+            writeTarget: 'memory' | 'io'
+        }
     }
 }
 
 declare module "@fibjs/tsf" {
-    const mod: FibAppStarterNS.ExportModule
+    const mod: TSFNamespace.ExportModule
     export = mod
 }
