@@ -6,8 +6,8 @@ const TSFError = require('../error')
 
 const { transpileTypescript } = require('./memory')
 
-exports.memoryToFile = function (tsRaw = '', targetpath = '', compilerOptions, _tsfTranspileOptions) {
-    const { overwrite = false, ...tsfTranspileOptions } = _tsfTranspileOptions || {};
+exports.memoryToFile = function (tsRaw = '', targetpath = '', compilerOptions, _preTsfTranspileOptions) {
+    const { overwrite = false, ...preTsfTranspileOptions } = _preTsfTranspileOptions || {};
 
     try {
         tstat = UTILs.checkFSStat(targetpath, 'file')
@@ -32,6 +32,5 @@ exports.memoryToFile = function (tsRaw = '', targetpath = '', compilerOptions, _
         }
     }
 
-    const outputText = transpileTypescript(tsRaw, compilerOptions, tsfTranspileOptions)
-    fs.writeTextFile(targetpath, outputText)
+    fs.writeTextFile(targetpath, transpileTypescript(tsRaw, compilerOptions, preTsfTranspileOptions))
 }

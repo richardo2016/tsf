@@ -4,6 +4,8 @@ const util = require('util')
 
 const mkdirp = require('@fibjs/mkdirp')
 
+const { dedupe } = require('./utils/array')
+
 const TSFError = require('./error');
 
 const { typescript: ts } = require('./typescript-apis/runtime')
@@ -151,6 +153,19 @@ exports.replaceExtname = function (target = '', {
         to_replace = new RegExp(`${to_replace}$`)
 
     return target.replace(to_replace, replace_to)
+}
+
+exports.getFilenameFilter = function (includeExts, excludeExts) {
+    includeExts = dedupe([].concat(includeExts || []))
+    excludeExts = dedupe([].concat(excludeExts || []))
+    
+    return (
+        filename => (
+            includeExts.some(ext => path.extname(filename) === ext)
+        ) && !(
+            excludeExts.some(ext => path.extname(filename) === ext)
+        )
+    )
 }
 
 exports.NOOP = function noop () {}

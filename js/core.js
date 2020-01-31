@@ -56,8 +56,6 @@ exports.transpileModule = function (
     const { writeTarget = WRITE_TARGETS.MEMORY } = tsfOptions || {};
     
     assert(!!WRITE_TARGETS[writeTarget], `writeTarget must be one of ${Object.values(WRITE_TARGETS).join(', ')}`)
-    
-    if (!WRITE_TARGETS[writeTarget]) writeTarget = WRITE_TARGETS.MEMORY;
 
     const diagnostics = [];
     const options = transpileOptions.compilerOptions ? ts.fixupCompilerOptions(transpileOptions.compilerOptions, diagnostics) : {};
@@ -99,6 +97,13 @@ exports.transpileModule = function (
 
         return "lib.d.ts"
     }
+
+    function swapCase(s) {
+        return s.replace(/\w/g, function (ch) {
+            var up = ch.toUpperCase();
+            return ch === up ? ch.toLowerCase() : up;
+        });
+    }
     // Create a compilerHost object to allow the compiler to read and write files
     const compilerHost__ = {
         /* @tsf_checked */
@@ -110,6 +115,7 @@ exports.transpileModule = function (
                 if writeTarget === WRITE_TARGETS.MEMORY, transpileOptions.fileName must be provided, as `name` here would be 
                 computed automatically(transpileOptions.outDir would be referenced in it)
             */
+
             if (writeTarget === WRITE_TARGETS.MEMORY || !transpileOptions.fileName)
                 if (ts.fileExtensionIs(name, ".map")) {
                     ts.Debug.assertEqual(sourceMapText, undefined, "Unexpected multiple source map outputs, file:", name);
@@ -126,7 +132,10 @@ exports.transpileModule = function (
             return ts.combinePaths(getDefaultLibLocation(), ts.getDefaultLibFileName(options));
         },
         useCaseSensitiveFileNames: function () {
-            return false;
+            if (process.platform === "win32" || process.platform === "win64")
+                return false;
+
+            return !ts.sys.fileExists(swapCase(__filename));
         },
         getCanonicalFileName: function (fileName) {
             // console.log('[compilerHost::getCanonicalFileName]', fileName)
@@ -139,7 +148,6 @@ exports.transpileModule = function (
             return newLine;
         },
         fileExists: function (fileName) {
-            // console.log('[compilerHost::fileExists]', fileName, inputFileName)
             return fileName === inputFileName;
         },
         readFile: function () { return ""; },

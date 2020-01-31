@@ -6,7 +6,7 @@ const readdirr = require('@fibjs/fs-readdir-recursive')
 const mm = require('micromatch')
 
 const UTILS = require('../_utils')
-const { dedupe, arraify } = require('../utils/array')
+const { arraify } = require('../utils/array')
 const TSFError = require('../error')
 
 const { compileFileTo } = require('./f2f')
@@ -28,7 +28,7 @@ exports.directoryToDirectory = function (sourceDir, targetDir, compilerOptions, 
     }
 
     const {
-        isTsScript = _getFilenameFilter(_INCLUDE_EXTS, _EXCLUDE_EXTS),
+        isTsScript = UTILS.getFilenameFilter(_INCLUDE_EXTS, _EXCLUDE_EXTS),
         /**
          * whether overwrite existed target files, or copy some non-ts files
          * @type { boolean | Array<string> } bool value or file glob rules
@@ -69,19 +69,6 @@ exports.directoryToDirectory = function (sourceDir, targetDir, compilerOptions, 
 const _INCLUDE_EXTS = ['.ts', '.tsx']
 const _EXCLUDE_EXTS = ['.d.ts']
 
-function _getFilenameFilter (includeExts, excludeExts) {
-    includeExts = dedupe([].concat(includeExts || []))
-    excludeExts = dedupe([].concat(excludeExts || []))
-    
-    return (
-        filename => (
-            includeExts.some(ext => path.extname(filename) === ext)
-        ) && !(
-            excludeExts.some(ext => path.extname(filename) === ext)
-        )
-    )
-}
-
 function getCallackTravalOnNonTsFiles (globRules = [], mm_options) {
     return function _handler ({
         targetDir, relname, filename
@@ -90,16 +77,5 @@ function getCallackTravalOnNonTsFiles (globRules = [], mm_options) {
 
         if (_filename)
             UTILS.copyFileTo(filename, path.resolve(targetDir, relname), { overwrite: true })
-
-        // return
-
-        // const isMatched = (
-        //     mm.isMatch(relname, globRules, { dot: true })
-        // ) || (
-        //     mm.isMatch(filename, globRules, { dot: true, basename: true })
-        // )
-
-        // if (isMatched)
-        //     UTILS.copyFileTo(filename, path.resolve(targetDir, relname), { overwrite: true })
     }
 }

@@ -42,7 +42,7 @@ const GLOBAL_PROXY_SANDBOX = new vm.SandBox({}, name => require(name))
 const transpileTypescript = exports.transpileTypescript = function (
     tsRaw = '',
     compilerOptions,
-    options
+    tsfTranspileOptions
 ) {
     const {
         toModule = false,
@@ -54,7 +54,7 @@ const transpileTypescript = exports.transpileTypescript = function (
         diagnostics,
         /* transpile about configuration :end */
         ...tsfOptions
-    } = options || {}
+    } = tsfTranspileOptions || {}
 
     if (diagnostics && !Array.isArray(diagnostics))
         throw new TSFError(`'diagnostics' must be diagnostic info Array!`, TSFError.LITERALS.TYPE_ASSERT)
