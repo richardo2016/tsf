@@ -13,8 +13,8 @@ const { memoryToFile } = require('./m2f')
  * @param sourcefile source file path, MUST be exsited and NOT EMPTY
  * @param targetpath target file path or dirname of it, it could be not existed be must one valid file path
  */
-exports.compileFileTo = function (sourcefile = '', targetpath = '', tsCompilerOptions, options) {
-    const { overwrite = false } = options || {};
+exports.compileFileTo = function (sourcefile = '', targetpath = '', compilerOptions, preTsfTranspileOptions) {
+    const { overwrite = false, ...transpileOptions } = preTsfTranspileOptions || {};
 
     UTILs.checkFilepathStat(sourcefile)
 
@@ -38,8 +38,8 @@ exports.compileFileTo = function (sourcefile = '', targetpath = '', tsCompilerOp
         }
     }
 
-    options.fileName = sourcefile
-    assert(options.fileName, '[compileFileTo] transpileOptions.fileName should be set when compile from file')
+    transpileOptions.fileName = sourcefile
+    assert(transpileOptions.fileName, '[compileFileTo] transpileOptions.fileName should be set when compile from file')
     
-    return memoryToFile(tsRaw, targetpath, tsCompilerOptions, options)
+    return memoryToFile(tsRaw, targetpath, compilerOptions, {overwrite, ...transpileOptions})
 }

@@ -76,6 +76,6 @@ function getCallackTravalOnNonTsFiles (globRules = [], mm_options) {
         const [_filename] = mm([relname], globRules, { ...DFLT_MM_OPTIONS_FOR_RELNAME, ...mm_options })
 
         if (_filename)
-            UTILS.copyFileTo(filename, path.resolve(targetDir, relname), { overwrite: true })
+            UTILS.copyFileFromTo(filename, path.resolve(targetDir, relname), { overwrite: true })
     }
 }

@@ -57,7 +57,6 @@ exports.compileFromTo = function (source, target, options) {
     try {
         UTILS.checkFSStat(source, 'file')
         return compileFileTo(source, target, compilerOptions, tsfTranspileOptions)
-        
     } catch (error) {
         switch (error.literalCode) {
             default:

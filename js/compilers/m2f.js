@@ -1,5 +1,6 @@
-const fs = require('fs')
 const path = require('path')
+
+const mkdirp = require('@fibjs/mkdirp')
 
 const UTILs = require('../_utils')
 const TSFError = require('../error')
@@ -7,7 +8,7 @@ const TSFError = require('../error')
 const { transpileTypescript } = require('./memory')
 
 exports.memoryToFile = function (tsRaw = '', targetpath = '', compilerOptions, _preTsfTranspileOptions) {
-    const { overwrite = false, ...preTsfTranspileOptions } = _preTsfTranspileOptions || {};
+    const { overwrite = false, ...tsfTranspileOptions } = _preTsfTranspileOptions || {};
 
     try {
         tstat = UTILs.checkFSStat(targetpath, 'file')
@@ -26,11 +27,24 @@ exports.memoryToFile = function (tsRaw = '', targetpath = '', compilerOptions, _
             throw error
 
         try {
-            UTILs.mkdirp(tbasedir)
+            mkdirp(tbasedir)
         } catch (e) {
             throw new TSFError(e.message, TSFError.LITERALS.MKDIR_FAILED)
         }
     }
-
-    fs.writeTextFile(targetpath, transpileTypescript(tsRaw, compilerOptions, preTsfTranspileOptions))
+    
+    if (_preTsfTranspileOptions.fileName || ['.map', '.d.ts'].some(ext => path.extname(targetpath) === ext))
+        transpileTypescript(tsRaw, {...compilerOptions, outDir: path.dirname(targetpath)}, {
+            ...tsfTranspileOptions,
+            writeTarget: 'IO',
+        })
+    else if (path.basename(targetpath) !== path.basename(_preTsfTranspileOptions.fileName))
+        UTILs.writeToFile(
+            transpileTypescript(tsRaw, compilerOptions, {
+                ...tsfTranspileOptions,
+                writeTarget: 'MEMORY',
+            }),
+            targetpath,
+            { overwrite: true }
+        )
 }

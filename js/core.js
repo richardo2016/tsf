@@ -7,6 +7,8 @@ const os = require('os')
 
 const TSFError = require('./error')
 
+const UTILs = require('./_utils')
+
 // CompilerOptions
 const DFLT_COMPILEROPTIONS = {
     module: typescript.ModuleKind.CommonJS
@@ -14,12 +16,6 @@ const DFLT_COMPILEROPTIONS = {
 
 function _getOptions(compilerOptions, locals) {
     compilerOptions = extend({}, DFLT_COMPILEROPTIONS, compilerOptions, locals)
-
-    if (compilerOptions.sourceMap) {
-        console.warn(`[tsf] don't support sourceMap now, tranform to 'inlineSourceMap' automatically.`)
-        compilerOptions.sourceMap = false
-        compilerOptions.inlineSourceMap = true
-    }
 
     return compilerOptions
 }
@@ -111,11 +107,15 @@ exports.transpileModule = function (
             return fileName === ts.normalizePath(inputFileName) ? sourceFile : undefined;
         },
         writeFile: function (name, text) {
+            // console.log(
+            //     '[writeFile] name',
+            //     name,
+            //     // transpileOptions
+            // )
             /* 
                 if writeTarget === WRITE_TARGETS.MEMORY, transpileOptions.fileName must be provided, as `name` here would be 
                 computed automatically(transpileOptions.outDir would be referenced in it)
             */
-
             if (writeTarget === WRITE_TARGETS.MEMORY || !transpileOptions.fileName)
                 if (ts.fileExtensionIs(name, ".map")) {
                     ts.Debug.assertEqual(sourceMapText, undefined, "Unexpected multiple source map outputs, file:", name);
@@ -126,7 +126,7 @@ exports.transpileModule = function (
                     outputText = text;
                 }
             else /* write name */
-                fs.writeTextFile(name, text)
+                UTILs.writeToFile(text, name)
         },
         getDefaultLibFileName: function (options) {
             return ts.combinePaths(getDefaultLibLocation(), ts.getDefaultLibFileName(options));

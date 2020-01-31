@@ -14,33 +14,39 @@ const CORE = require('./core');
 function time () {
     return new Date()
 }
-const isDebug = exports.isDebug = !!process.env.FIB_DEBUG
-
-exports.mkdirp = (...args) => {
-    isDebug && console.log(`${getLogPrefix('io', 'mkdirp')}`)
-    return mkdirp(...args)
-}
-
-exports.forceRemove = () => {
-    
-}
-
-exports.copyFileTo = (srcpath, distpath, { overwrite = false }) => {
-    if (fs.exists(distpath)) {
+/**
+ * 
+ * @param {*} filename 
+ * @param {*} overwrite 
+ * 
+ * @return {boolean} whether could write
+ */
+const ensureFilenameWritable = (filename, overwrite) => {
+    if (fs.exists(filename)) {
         if (!overwrite) return 
             
-        const stat = fs.stat(distpath)
+        const stat = fs.stat(filename)
 
         if (stat.isDirectory()) {
-            rmdirr(distpath)
+            rmdirr(filename)
         } else {
-            fs.unlink(distpath)
+            fs.unlink(filename)
         }
     } else {
-        try { mkdirp(path.dirname(distpath)) } catch (error) {}
+        try { mkdirp(path.dirname(filename)) } catch (error) {}
     }
 
-    fs.copy(srcpath, distpath)
+    return true
+}
+
+exports.writeToFile = (content, filename, { overwrite = false } = {}) => {
+    if (ensureFilenameWritable(filename, overwrite))
+        fs.writeFile(filename, content)
+}
+
+exports.copyFileFromTo = (srcpath, distpath, { overwrite = false } = {}) => {
+    if (ensureFilenameWritable(distpath, overwrite))
+        fs.copy(srcpath, distpath)
 }
 
 const getLogPrefix = exports.getLogPrefix = function (domain = 'default', action = 'action') {

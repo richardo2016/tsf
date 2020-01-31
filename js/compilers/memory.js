@@ -38,7 +38,6 @@ const GLOBAL_PROXY_SANDBOX = new vm.SandBox({}, name => require(name))
         return output.outputText;
     }
  */
-// customize my own shortcuts of `ts.transpileModule`
 const transpileTypescript = exports.transpileTypescript = function (
     tsRaw = '',
     compilerOptions,
@@ -81,16 +80,4 @@ const transpileTypescript = exports.transpileTypescript = function (
     mSandbox.addScript(mName, jsScript)
 
     return mSandbox.require(mName, __dirname)
-}
-
-const defaultOnTranspiledModuleResult = function defaultOnTranspiledModuleResult (result, options) {
-    if (!process.env.DEBUG) return 
-    
-    const { diagnostics } = options || {}
-
-    if (!!diagnostics) {
-        result.diagnostics.map(diag => {
-            console.log(diagnosticsReporter(diag))
-        })
-    }
 }

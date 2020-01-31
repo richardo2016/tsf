@@ -16,10 +16,20 @@ const { SOURCE_BASE } = require('./_helpers')
 
 const fsFileTestBasic = {
     inputFilepath: path.resolve(SOURCE_BASE, './basic.ts'),
-    outputFilepath: path.join(__dirname, './dist/from-file/1/basic.js'),
-    outputDirname: path.join(__dirname, './dist/from-file/2'),
-    sboxName: 'file'
+    outputFilepath: path.join(__dirname, './dist/from-file/basic_simple/basic.js'),
+    outputDirname: path.join(__dirname, './dist/from-file/basic_simple-out'),
 }
+const fsFileTestSourceMap = {
+    inputFilepath: path.resolve(SOURCE_BASE, './basic.ts'),
+    outputFilepath: path.join(__dirname, './dist/from-file/basic_simple-sourcemap/basic.js.map'),
+    outputDirname: path.join(__dirname, './dist/from-file/basic_simple-sourcemap-out'),
+}
+const fsFileTestEmitDTS = {
+    inputFilepath: path.resolve(SOURCE_BASE, './basic.ts'),
+    outputFilepath: path.join(__dirname, './dist/from-file/basic_simple-dts/basic.d.ts'),
+    outputDirname: path.join(__dirname, './dist/from-file/basic_simple-dts-out'),
+}
+
 const fsFileTestInterface = {
     inputFilepath: path.resolve(SOURCE_BASE, './interface.ts')
 }
@@ -63,16 +73,52 @@ describe('from file', () => {
         }
     })
 
-    it('compile file to file', () => {
-        TSF.compilers.compileFromTo(
-            fsFileTestBasic.inputFilepath,
-            fsFileTestBasic.outputFilepath,
-            { overwrite: true }
-        )
+    describe('compile file to file', () => {
+        it('simple', () => {
+            TSF.compilers.compileFromTo(
+                fsFileTestBasic.inputFilepath,
+                fsFileTestBasic.outputFilepath,
+                { overwrite: true }
+            )
+    
+            assertSandboxForBasicTs(
+                sbox.require(fsFileTestBasic.outputFilepath, __dirname)
+            )
+        })
 
-        assertSandboxForBasicTs(
-            sbox.require(fsFileTestBasic.outputFilepath, __dirname)
-        )
+        it('sourceMap', () => {
+            TSF.compilers.compileFromTo(
+                fsFileTestSourceMap.inputFilepath,
+                fsFileTestSourceMap.outputFilepath,
+                { overwrite: true, compilerOptions: { sourceMap: true } }
+            )
+    
+            assert.isTrue(
+                fs.exists(fsFileTestSourceMap.outputFilepath)
+            )
+            assert.isObject(
+                JSON.parse(
+                    fs.readTextFile(fsFileTestSourceMap.outputFilepath)
+                )
+            )
+        })
+
+        xit('dts', () => {
+            TSF.compilers.compileFromTo(
+                fsFileTestEmitDTS.inputFilepath,
+                fsFileTestEmitDTS.outputFilepath,
+                { overwrite: true, compilerOptions: { declaration: true, emitDeclarationOnly: true } }
+            )
+    
+            assert.isTrue(
+                fs.exists(fsFileTestEmitDTS.outputFilepath)
+            )
+            assert.isObject(
+                JSON.parse(
+                    fs.readTextFile(fsFileTestEmitDTS.outputFilepath)
+                )
+            )
+        })
     })
 
     it('@error: compile file to file, dont overwrite', () => {
@@ -172,7 +218,7 @@ describe('from file', () => {
                 description: 'compile tsx(preact)',
 
                 inputFilepath: path.resolve(SOURCE_BASE, './tsx/html.div.tsx'),
-                outputFilepath: path.resolve(__dirname, './dist/from-file/jsx/html.div.preact.js'),
+                outputFilepath: path.resolve(__dirname, './dist/from-file/jsx/preserve-preact/html.div.js'),
                 
                 jsx: 'preserve',
                 jsxFactory: 'preact.createElement'
@@ -181,7 +227,7 @@ describe('from file', () => {
                 description: 'compile tsx(h)',
 
                 inputFilepath: path.resolve(SOURCE_BASE, './tsx/html.div.tsx'),
-                outputFilepath: path.resolve(__dirname, './dist/from-file/jsx/html.div.h.js'),
+                outputFilepath: path.resolve(__dirname, './dist/from-file/jsx/preserve-h/html.div.js'),
                 
                 jsx: 'preserve',
                 jsxFactory: 'h'
@@ -197,6 +243,7 @@ describe('from file', () => {
             },
         ].forEach(({ description, inputFilepath, outputFilepath, jsxFactory }) => {
             it(`${description}`, () => {
+                try { fs.unlink(outputFilepath) } catch (error) {}
                 const jsscript = TSF.compilers.compileFrom(inputFilepath, { compilerOptions: {...compilerOptionsJsx, jsxFactory} })
     
                 assert.ok( jsscript.includes(`${jsxFactory}`))
@@ -204,13 +251,15 @@ describe('from file', () => {
 
 
             it(`[toModule]${description}`, () => {
+                try { fs.unlink(outputFilepath) } catch (error) {}
+                
                 const rawModule = TSF.compilers.compileFrom(inputFilepath, { sandbox, toModule: true, compilerOptions: {...compilerOptionsJsx, jsxFactory} })
     
                 assert.isFunction( rawModule.default )
             })
 
             it(`${description} to target`, () => {
-                try { rmdirr(outputFilepath) } catch (error) {}
+                try { fs.unlink(outputFilepath) } catch (error) {}
 
                 assert.isFalse(fs.exists(outputFilepath))
     
