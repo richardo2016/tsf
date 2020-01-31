@@ -28,16 +28,6 @@ exports.inputExt = '.ts'
 exports.outputExt = '.js'
 exports.logPrefix = '[tsf]'
 
-exports.transpileModule = function (input, tsfTranspileOptions) {
-    if (!input)
-        throw new TSFError('typescript inputed empty', TSFError.LITERALS.TYPESCRIPT_SOURCE_EMPTY)
-
-    tsfTranspileOptions = extend({}, tsfTranspileOptions)
-    tsfTranspileOptions.compilerOptions = _getOptions(tsfTranspileOptions.compilerOptions)
-
-    return compile(input, tsfTranspileOptions)
-}
-
 /**
  * @see https://sourcegraph.com/github.com/microsoft/TypeScript@6769313/-/blob/src/services/transpile.ts#L26
  * @see https://github.com/microsoft/TypeScript/wiki/Using-the-Compiler-API
@@ -51,11 +41,18 @@ const WRITE_TARGETS = {
     MEMORY: 'MEMORY',
     IO: 'IO'
 }
-const compile = function (
+
+exports.transpileModule = function (
     input,
-    transpileOptions
+    tsfTranspileOptions
 ) {
-    const { tsfOptions = {} } = transpileOptions || {}
+    if (!input)
+        throw new TSFError('typescript inputed empty', TSFError.LITERALS.TYPESCRIPT_SOURCE_EMPTY)
+
+    tsfTranspileOptions = extend({}, tsfTranspileOptions)
+    const { tsfOptions = {}, ...transpileOptions } = tsfTranspileOptions || {};
+    transpileOptions.compilerOptions = _getOptions(transpileOptions.compilerOptions)
+    
     const { writeTarget = WRITE_TARGETS.MEMORY } = tsfOptions || {};
     
     assert(!!WRITE_TARGETS[writeTarget], `writeTarget must be one of ${Object.values(WRITE_TARGETS).join(', ')}`)
