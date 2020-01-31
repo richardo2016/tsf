@@ -1,4 +1,3 @@
-const vm = require('vm')
 const fs = require('fs')
 const path = require('path')
 const util = require('util')
@@ -7,6 +6,7 @@ const mkdirp = require('@fibjs/mkdirp')
 
 const TSFError = require('./error');
 
+const { typescript: ts } = require('./typescript-apis/runtime')
 const CORE = require('./core');
 
 function time () {
@@ -19,8 +19,14 @@ exports.mkdirp = (...args) => {
     return mkdirp(...args)
 }
 
-exports.overwriteFile = (srcpath, distpath) => {
+exports.forceRemove = () => {
+    
+}
+
+exports.copyFileTo = (srcpath, distpath, { overwrite = false }) => {
     if (fs.exists(distpath)) {
+        if (!overwrite) return 
+            
         const stat = fs.stat(distpath)
 
         if (stat.isDirectory()) {
@@ -28,25 +34,27 @@ exports.overwriteFile = (srcpath, distpath) => {
         } else {
             fs.unlink(distpath)
         }
+    } else {
+        try { mkdirp(path.dirname(distpath)) } catch (error) {}
     }
 
     fs.copy(srcpath, distpath)
 }
 
-exports.getLogPrefix = function getLogPrefix (domain = 'default', action = 'action') {
+const getLogPrefix = exports.getLogPrefix = function (domain = 'default', action = 'action') {
     return `${CORE.logPrefix}[${domain}:${action}] - [${time()}]  `
 }
 
 
-const extendCompilerConfigFromTSConfig = exports.extendCompilerConfigFromTSConfig = function (origConfig = {}) {
-    let tsConfigFilepath = path.resolve(process.cwd(), 'tsconfig.json')
+const extendCompilerConfigFromTSConfig = exports.extendCompilerConfigFromTSConfig = function (tsconfig = {}) {
+    const configFileName = ts.findConfigFile(process.cwd(), fileName => ts.sys.fileExists(fileName));
 
-    if (tsConfigFilepath && fs.exists(tsConfigFilepath) && fs.stat(tsConfigFilepath).isFile()) {
+    if (configFileName) {
         let tsConfig = require(tsConfigFilepath) || {}
-        origConfig = util.extend({}, origConfig, tsConfig.compilerOptions)
+        tsconfig = util.extend({}, tsconfig, tsConfig.compilerOptions)
     }
 
-    return origConfig
+    return tsconfig
 }
 
 const defaultCompilerOptions = exports.defaultCompilerOptions = require('../tsconfig.dft.json')
@@ -181,25 +189,25 @@ exports.checkDirnameStat = function checkFilepathStat (filepath) {
  */
 exports.checkFSStat = function checkFSStat (filepath, allowedFSType = 'file') {
     if (!filepath || typeof filepath !== 'string')
-        throw new TSFError(`empty filepath ${filepath}`, TSFError.LITERALS.INVALID_FILEPATH)
+        throw new TSFError(`invalid filepath '${filepath}'`, TSFError.LITERALS.INVALID_FILEPATH)
 
     if (!fs.exists(filepath))
-        throw new TSFError(`invalid filepath ${filepath}`, TSFError.LITERALS.NOT_EXISTED)
+        throw new TSFError(`filepath '${filepath}' non-existed`, TSFError.LITERALS.NOT_EXISTED)
 
     const stat = fs.stat(filepath)
 
     switch (allowedFSType) {
         case 'file':
             if (!stat.isFile())
-                throw new TSFError(`${UTILs.getLogPrefix('api', 'checkFSStat')}path '${targetpath}' is not file.`, TSFError.LITERALS.NOT_FILE)
+                throw new TSFError(`${getLogPrefix('api', 'checkFSStat')}path '${filepath}' is not file.`, TSFError.LITERALS.NOT_FILE)
             break
         case 'directory':
             if (!stat.isDirectory())
-                throw new TSFError(`${UTILs.getLogPrefix('api', 'checkFSStat')}path '${targetpath}' is not directory.`, TSFError.LITERALS.NOT_DIR)
+                throw new TSFError(`${getLogPrefix('api', 'checkFSStat')}path '${filepath}' is not directory.`, TSFError.LITERALS.NOT_DIR)
             break
         case 'symlink':
             if (!stat.isSymbolicLink())
-                throw new TSFError(`${UTILs.getLogPrefix('api', 'checkFSStat')}path '${targetpath}' is not symbollink.`, TSFError.LITERALS.NOT_SYMLINK)
+                throw new TSFError(`${getLogPrefix('api', 'checkFSStat')}path '${filepath}' is not symbollink.`, TSFError.LITERALS.NOT_SYMLINK)
             break
     }
 

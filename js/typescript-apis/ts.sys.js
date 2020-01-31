@@ -1,6 +1,10 @@
 const { typescript } = require('./runtime')
 
+/**
+ * useless now
+ */
 exports.configTsSys = (ts = typescript) => {
+    return ;
     ts.sys = (function () {
         const byteOrderMarkIndicator = "\uFEFF";
         function getFibSystem() {

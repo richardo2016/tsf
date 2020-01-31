@@ -243,7 +243,7 @@ describe('from file', () => {
                 assert.isTrue(
                     diagnostics.every(diagnostic => {
                         const output = TSF.tsApis.formatDiagnostic(diagnostic);
-                        console.log('\t', output)
+                        // console.log('\t', output)
 
                         return (
                             strip(output).includes(

@@ -23,7 +23,9 @@
 	},
 	"analyse": false,
 	"dependencies": {
-		"@fibjs/mkdirp": "^1.0.1"
+		"@fibjs/fs-readdir-recursive": "^1.0.2",
+		"@fibjs/mkdirp": "^1.0.1",
+		"micromatch": "^4.0.2"
 	},
 	"devDependencies": {
 		"@fibjs/ci": "^2.3.0",
@@ -36,6 +38,9 @@
 		"source-map-support": "^0.5.16",
 		"strip-color": "^0.1.0",
 		"typescript": "^3.7.5"
+	},
+	"peerDependencies": {
+		"typescript": ">=3.7.x"
 	},
 	"ci": {
 		"type": "travis, appveyor",

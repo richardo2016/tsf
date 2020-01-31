@@ -13,5 +13,6 @@ describe("TSF", function () {
 
 require('./specs/spec.from-memory');
 require('./specs/spec.from-file');
+require('./specs/spec.from-directory');
 
 test.run(console.DEBUG)
